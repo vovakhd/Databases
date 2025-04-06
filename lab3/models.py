@@ -27,7 +27,7 @@ class Weather(Base):
     __tablename__ = "weather"
 
     id = Column(Integer, primary_key=True)
-    country = Column(String, nullable=False)
+    country = Column(String(100), nullable=False)
     wind_degree = Column(Integer)
     wind_kph = Column(Float)
     wind_direction = Column(Enum(WindDirectionEnum))

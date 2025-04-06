@@ -1,0 +1,55 @@
+from sqlalchemy import Date
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from models import Weather, AirQuality
+from datetime import datetime
+
+DATABASE_URL = "mysql+pymysql://root:password123@localhost:3306/weather_db_mysql"
+engine = create_engine(DATABASE_URL)
+Session = sessionmaker(bind=engine)
+
+def query_weather(country: str, date_str: str):
+    session = Session()
+
+    try:
+        target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+
+        results = (
+            session.query(Weather)
+            .join(AirQuality)
+            .filter(Weather.country.ilike(country), Weather.last_updated.cast(Date) == target_date)
+            .all()
+        )
+
+        if not results:
+            print("Даних не знайдено.")
+            return
+
+        for w in results:
+            print(f"\nКраїна: {w.country}")
+            print(f"Напрямок вітру в градусах: {w.wind_degree}")
+            print(f"Швидкість вітру: {w.wind_kph} kph")
+            print(f"Напрямок вітру: {w.wind_direction.name if w.wind_direction else 'Невідомо'}")
+            print(f"Дата: {w.last_updated}")
+            print(f"Схід сонця: {w.sunrise}")
+            print("--- Air Quality ---")
+            print(f"CO: {w.air_quality.carbon_monoxide}")
+            print(f"Ozone: {w.air_quality.ozone}")
+            print(f"Nitrogen Dioxide: {w.air_quality.nitrogen_dioxide}")
+            print(f"Sulphur Dioxide: {w.air_quality.sulphur_dioxide}")
+            print(f"PM2.5: {w.air_quality.pm2_5}, PM10: {w.air_quality.pm10}")
+            print(f"US EPA Index: {w.air_quality.us_epa_index}")
+            print(f"GB DEFRA Index: {w.air_quality.gb_defra_index}")
+            print(f"Чи варто виходити на вулицю? {'Так' if w.air_quality.go_outside else 'Ні'}")
+    
+    except Exception as e:
+        print(f"Помилка: {e}")
+
+    finally:
+        session.close()
+
+
+if __name__ == "__main__":
+    country = input("Введіть країну: ")
+    date = input("Введіть дату (YYYY-MM-DD): ")
+    query_weather(country, date)
