@@ -4,7 +4,6 @@ import enum
 
 Base = declarative_base()
 
-
 class WindDirectionEnum(enum.Enum):
     N = "N"
     NNE = "NNE"
